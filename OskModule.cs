@@ -9,7 +9,7 @@ namespace OSK
     public class OskModule : PartModule
     {
         private UdpClient client = new UdpClient();
-        private IPEndPoint server = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9599);
+        private IPEndPoint server = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
         private Int64 lastTransmitTime;
         private const int ticksPerMillisecond = 10000;
 
@@ -39,7 +39,7 @@ namespace OSK
             float floatValue = (float)value;
 
             // Contruct the OSC message. First the Address Pattern:
-            string addressPattern = "/osk/" + key + "\0";
+            string addressPattern = "/OSK/" + key + "\0";
             // Pad the address pattern to a multiple of 4 bytes (OSC string specification).
             while (addressPattern.Length % 4 != 0) { addressPattern += "\0"; }
 
