@@ -50,6 +50,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Receiver.cs" />
+    <Compile Include="Transmitter.cs" />
     <Compile Include="OskModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

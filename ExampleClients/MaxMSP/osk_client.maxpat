@@ -61,9 +61,9 @@
 					"numinlets" : 1,
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
-					"patching_rect" : [ 17.75, 12.0, 107.0, 23.0 ],
+					"patching_rect" : [ 18.75, 12.0, 107.0, 23.0 ],
 					"style" : "",
-					"text" : "udpreceive 9599"
+					"text" : "udpreceive 9000"
 				}
 
 			}
