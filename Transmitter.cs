@@ -9,42 +9,75 @@ namespace osk
 {
     class Transmitter
     {
-        private IPEndPoint listen_socket = new IPEndPoint(IPAddress.Parse("10.31.225.105"), 9000);
         private UdpClient udp = new UdpClient();
+        private IPEndPoint recipient = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 9000);
+
+        private const string OSCFloat = "f";
+        private const string OSCString = "s";
 
         // initialize telemetry
         public Transmitter()
         {
-            udp.Connect(listen_socket);
+            udp.Connect(recipient);
         }
 
+        public void transmit(string key, string value)
+        {
+            SendOSCValue(OSCString, key, System.Text.Encoding.UTF8.GetBytes(value));
+        }
+        
         public void transmit(string key, double value)
         {
-            // KSP uses doubles, but OSC only supports 32-bit floats.
-            float floatValue = (float)value;
+            // KSP uses doubles, but OSC only supports 32-bit floats, so this
+            // method handles doubles with a simple cast to float.
+            transmit(key, (float)value);
+        }
 
-            // Contruct the OSC message. First the Address Pattern:
-            string addressPattern = "/OSK/" + key + "\0";
-            // Pad the address pattern to a multiple of 4 bytes (OSC string specification).
-            while (addressPattern.Length % 4 != 0) { addressPattern += "\0"; }
-
-            // Now the OSC Type Tag for a single float value.
-            string floatTypeTag = ",f\0\0"; // again, padded to 4 byte boundry.
-
-            // Convert what we have to byte streams.
-            byte[] oscHeaderBytes = System.Text.Encoding.ASCII.GetBytes(addressPattern + floatTypeTag);
-            byte[] oscArgumentBytes = BitConverter.GetBytes(floatValue);
+        public void transmit(string key, float value)
+        {
+            byte[] valueBytes = BitConverter.GetBytes(value);
             // Tricky bit: Kerbal is a native x86 application, so it gives us little-endian
-            // floating-point values, but OSC demands big-endian ("network") byte order. So...
-            Array.Reverse(oscArgumentBytes);
+            // floating-point values, but OSC demands big-endian ("network") byte order. So
+            // we have to:
+            Array.Reverse(valueBytes);
+            // before we:
+            SendOSCValue(OSCFloat, key, valueBytes);
+        }
 
-            // Put it all together in a new byte stream, ready to go on the wire.
-            var payload = new byte[oscHeaderBytes.Length + oscArgumentBytes.Length];
-            oscHeaderBytes.CopyTo(payload, 0);
-            oscArgumentBytes.CopyTo(payload, oscHeaderBytes.Length);
+        private string ConstructAddressPattern(string key)
+        {
+            string AddressPattern = "/OSK/" + key + "\0";
+            // Pad the address pattern to a multiple of 4 bytes (OSC string specification).
+            while (AddressPattern.Length % 4 != 0) { AddressPattern += "\0"; }
+            return AddressPattern;
+        }
 
-            // Fire!
-            udp.Send(payload, payload.Length);
+        private string ConstructTypeTag(string type)
+        {
+            return "," + type + "\0\0";
+        }
+
+        private void SendOSCValue(string type, string name, byte[] value)
+        {
+            string addressPattern = ConstructAddressPattern(name);
+            string typeTag = ConstructTypeTag(type);
+
+            // Convert what we have to raw bytes.
+            byte[] header = System.Text.Encoding.ASCII.GetBytes(addressPattern + typeTag);
+
+            //// Combine the the complete OSC message into a new byte stream.
+            // First, we have make an empty byte array that is exactly the right size.
+            // This is a C-style thing. If you're used to Ruby/Python, this might
+            // seem a bit fiddly.
+            int payloadLength = header.Length + value.Length;
+            var payload = new byte[payloadLength];
+
+            // Then we copy the two parts into their correct locations in the payload.
+            header.CopyTo(payload, 0);
+            value.CopyTo(payload, header.Length);
+
+            // We're done. Put it on the wire.
+            udp.Send(payload, payloadLength);
         }
     }
 }

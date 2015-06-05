@@ -15,7 +15,7 @@ namespace osk
 
         public override void OnStart(StartState state)
         {
-            System.IO.File.WriteAllText(@"C:\Temp\ksp_osk.log", @"On Start Called\n");
+            base.OnStart(state);
             transmitter = new Transmitter();
             receiver = new Receiver();
         }
@@ -30,10 +30,14 @@ namespace osk
             if (now > (lastTransmitTime + (ticksPerMillisecond * 100)))
             {
                 transmitter.transmit("altitude", vessel.altitude);
+                transmitter.transmit("atmospheric_density", vessel.atmDensity);
+                transmitter.transmit("crew_count", vessel.GetCrewCount());
+                transmitter.transmit("height_from_terrain", vessel.GetHeightFromTerrain());
+                transmitter.transmit("total_mass", vessel.GetTotalMass());
                 transmitter.transmit("vertical_speed", vessel.verticalSpeed);
-                transmitter.transmit("crew_count", (double)vessel.GetCrewCount());
-                lastTransmitTime = DateTime.Now.Ticks;
+                // transmitter.transmit("name", vessel.GetName());
 
+                lastTransmitTime = DateTime.Now.Ticks;
             }
 
             // Handle commands from the receiver.
