@@ -29,7 +29,7 @@ namespace osk
             IPEndPoint listenSocket = new IPEndPoint(IPAddress.Any, 9100);
             UdpClient udpListener = new UdpClient(listenSocket);
 
-            // We'll be registering a callback function to be called  when we get
+            // We'll be registering a callback function to be called when we get
             // a message. That function will need some context to understand
             // what is going on.
             //
@@ -53,6 +53,7 @@ namespace osk
             UdpClient udpClient = state.udpListener;
             Receiver receiver = state.oskReceiver;
 
+            // Now we can get the actual message.
             byte[] received = udpClient.EndReceive(res, ref listenSocket);
 
             // Store the message on the OSK Receiver object.
