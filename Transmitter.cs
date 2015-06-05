@@ -15,7 +15,6 @@ namespace osk
         private const string OSCFloat = "f";
         private const string OSCString = "s";
 
-        // initialize telemetry
         public Transmitter()
         {
             udp.Connect(recipient);
@@ -23,6 +22,8 @@ namespace osk
 
         public void transmit(string key, string value)
         {
+            // FIXME: The MAX/MSP client is telling us we have a "Bogus String",
+            // so I don't think this is quite right.
             SendOSCValue(OSCString, key, System.Text.Encoding.UTF8.GetBytes(value));
         }
         
@@ -65,8 +66,8 @@ namespace osk
             // Convert what we have to raw bytes.
             byte[] header = System.Text.Encoding.ASCII.GetBytes(addressPattern + typeTag);
 
-            //// Combine the the complete OSC message into a new byte stream.
-            // First, we have make an empty byte array that is exactly the right size.
+            //// Build the OSC message.
+            // First, we have to make an empty byte array that is exactly the right size.
             // This is a C-style thing. If you're used to Ruby/Python, this might
             // seem a bit fiddly.
             int payloadLength = header.Length + value.Length;

@@ -14,7 +14,7 @@ namespace osk
 
         public Receiver()
         {
-            registerUDPListener("FIRST");
+            registerUDPListener();
         }
 
         public byte[] GetMessage()
@@ -24,42 +24,53 @@ namespace osk
             return poppedMessage;
         }
 
-        private void registerUDPListener(string caller_message)
+        private void registerUDPListener()
         {
-            System.IO.File.AppendAllText(@"C:\Temp\ksp_osk.log", "  caller : " + caller_message + "\n");
+            IPEndPoint listenSocket = new IPEndPoint(IPAddress.Any, 9100);
+            UdpClient udpListener = new UdpClient(listenSocket);
 
-            IPEndPoint remote = new IPEndPoint(IPAddress.Any, 9100);
-            UdpClient udp_remote = new UdpClient(remote);
-
-            // initialize the state object passed to the asynch callback
+            // We'll be registering a callback function to be called  when we get
+            // a message. That function will need some context to understand
+            // what is going on.
+            //
+            // We'll make an object, and stitch the appropriate information onto it.
             UdpState udpState = new UdpState();
-            udpState.endpoint = remote;
-            udpState.udpClient = udp_remote;
-            udpState.receiver = this;
+            udpState.listenSocket = listenSocket;
+            udpState.udpListener = udpListener;
+            udpState.oskReceiver = this;
 
-            udp_remote.BeginReceive(new AsyncCallback(OnUDPCommand), udpState);
-            System.IO.File.AppendAllText(@"C:\Temp\ksp_osk.log", @"Register finished\n");
+            // Start listening, and set up the callback function (with the state object).
+            udpListener.BeginReceive(new AsyncCallback(OnUDPCommand), udpState);
         }
 
         static void OnUDPCommand(IAsyncResult res)
         {
-            // WriteAllLines creates a file, writes a collection of strings to the file, 
-            // and then closes the file.
+            // This is the callback. If we get a UDP message, we'll come here.
+            // The state object we prepared earlier will be available, let's grab it:
             UdpState state = (UdpState)res.AsyncState;
-            IPEndPoint endPoint = state.endpoint;
-            UdpClient udpClient = state.udpClient;
-            Receiver receiver = state.receiver;
-            byte[] received = udpClient.EndReceive(res, ref endPoint);
+            // ...and pull the bits we need off it:
+            IPEndPoint listenSocket = state.listenSocket;
+            UdpClient udpClient = state.udpListener;
+            Receiver receiver = state.oskReceiver;
+
+            byte[] received = udpClient.EndReceive(res, ref listenSocket);
+
+            // Store the message on the OSK Receiver object.
+            // It's like an inbox. Any time after this, our "customers" can call
+            // GetMessage() to see whatever we received.
             receiver.message = received;
+
+            // This completes a cycle.
+            // Clean up and re-register the callback to catch the next message.
             udpClient.Close();
-            receiver.registerUDPListener("NOT FIRST");
+            receiver.registerUDPListener();
         }
     }
 
     public class UdpState
     {
-        public IPEndPoint endpoint;
-        public UdpClient udpClient;
-        public Receiver receiver;
+        public IPEndPoint listenSocket;
+        public UdpClient udpListener;
+        public Receiver oskReceiver;
     }
 }
