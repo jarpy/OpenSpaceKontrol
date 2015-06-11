@@ -6,6 +6,6 @@ Open Space Kontrol will enable anything that can speak OSC (over UDP) to operate
 
 In its current state, only a small sample of telemetry numbers are transmitted, and very few vessel controls are supported, including "ActivateNextStage" (which is quite fun to trigger from a phone/tablet).
 
-OSK is in early development, and there are many issues to be addressed, particularly around vessel switching. However, it is already possible to recieve some telemetry and to trigger staging from a network-attached OSC controller, such as TouchOSC.
+OSK is in early development. However, it is already possible to recieve some telemetry and to trigger staging from a network-attached OSC controller, such as TouchOSC.
 
 Pull requests are most welcome!

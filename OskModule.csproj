@@ -50,6 +50,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="UDPAddon.cs" />
     <Compile Include="Receiver.cs" />
     <Compile Include="Transmitter.cs" />
     <Compile Include="OskModule.cs" />

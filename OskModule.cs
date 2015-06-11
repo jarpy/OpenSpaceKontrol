@@ -16,8 +16,8 @@ namespace osk
         public override void OnStart(StartState state)
         {
             base.OnStart(state);
-            transmitter = new Transmitter();
-            receiver = new Receiver();
+            transmitter = UDPAddon.transmitter;
+            receiver = UDPAddon.reciever;
         }
 
         public override void OnUpdate()
