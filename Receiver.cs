@@ -7,6 +7,13 @@ using System.Net.Sockets;
 
 namespace osk
 {
+    public class OscMessage
+    {
+        public string addressPattern;
+        public string typeTag;
+        public float argument;
+    }
+
     public class Receiver
     {
         private bool messageReceived = false;
@@ -17,11 +24,62 @@ namespace osk
             registerUDPListener();
         }
 
-        public byte[] GetMessage()
+        public byte[] GetMessageBytes()
         {
             byte[] poppedMessage = message;
             message = null;
             return poppedMessage;
+        }
+
+        public OscMessage GetMessage()
+        {
+            OscMessage result = new OscMessage();
+            byte[] received = this.message;
+            this.message = null;
+            if(received == null)
+            {
+                return null;
+            }
+            else
+            {
+                int startHere = 0;
+
+                // Cut out the OSC Address Pattern
+                int endHere = Array.IndexOf(received, (byte)0x00);
+                var addressPatternBytes = new byte[endHere];
+                Array.Copy(received, startHere, addressPatternBytes, 0, endHere);
+                result.addressPattern = System.Text.Encoding.ASCII.GetString(addressPatternBytes);
+
+                // Continue along the recieved bytes, and cut out the OSC Type Tag
+                startHere = endHere;
+                while (received[startHere] == (byte)0x00 || received[startHere] == (byte)',')
+                {
+                    startHere++;
+                }
+                endHere = startHere;
+                while (received[endHere] != (byte)0x00)
+                {
+                    endHere++;
+                }
+                var typeTag = new byte[endHere - startHere];
+                Array.Copy(received, startHere, typeTag, 0, endHere - startHere);
+                result.typeTag = System.Text.Encoding.ASCII.GetString(typeTag);
+
+                // Finally the (FIXME: assumed float) OSC Argument
+                if(result.typeTag == "f")
+                {
+                    startHere = endHere + 2;
+                    var argument = new byte[4];
+                    Array.Copy(received, startHere, argument, 0, 4);
+                    // Big-endian -> Little-endian.
+                    Array.Reverse(argument);
+                    result.argument = System.BitConverter.ToSingle(argument, 0);
+                }
+
+
+
+                return result;
+            }
         }
 
         private void registerUDPListener()

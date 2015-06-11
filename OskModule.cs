@@ -41,23 +41,28 @@ namespace osk
             }
 
             // Handle commands from the receiver.
-            byte[] messageBytes = receiver.GetMessage();
-            if (messageBytes != null)
+            OscMessage command = receiver.GetMessage();
+            if (command != null)
             {
-                ProcessCommand(messageBytes);
+                ProcessCommand(command);
             }
         }
 
-        private void ProcessCommand(byte[] oscMessage)
+        private void ProcessCommand(OscMessage command)
         {
-            string command = System.Text.Encoding.ASCII.GetString(oscMessage);
-            if (command.StartsWith("/OSK/stage\0"))
+            print(command.addressPattern);
+            print(command.typeTag);
+            if (command.addressPattern == "/OSK/stage")
             {
                 Staging.ActivateNextStage();
             }
-            else if (command.StartsWith("/OSK/murder_crew\0"))
+            else if (command.addressPattern == "/OSK/murder_crew")
             {
                 vessel.MurderCrew();
+            }
+            else if (command.addressPattern == "/OSK/throttle")
+            {
+                FlightInputHandler.state.mainThrottle = command.argument;
             }
             else
             {
