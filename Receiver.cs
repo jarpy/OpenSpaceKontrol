@@ -18,10 +18,12 @@ namespace osk
     {
         private bool messageReceived = false;
         private byte[] message;
+        private int port;
 
-        public Receiver()
+        public Receiver(int port)
         {
-            registerUDPListener();
+            this.port = port;
+            registerUDPListener(this.port);
         }
 
         public byte[] GetMessageBytes()
@@ -76,15 +78,13 @@ namespace osk
                     result.argument = System.BitConverter.ToSingle(argument, 0);
                 }
 
-
-
                 return result;
             }
         }
 
-        private void registerUDPListener()
+        private void registerUDPListener(int port)
         {
-            IPEndPoint listenSocket = new IPEndPoint(IPAddress.Any, 9100);
+            IPEndPoint listenSocket = new IPEndPoint(IPAddress.Any, port);
             UdpClient udpListener = new UdpClient(listenSocket);
 
             // We'll be registering a callback function to be called when we get
@@ -122,7 +122,7 @@ namespace osk
             // This completes a cycle.
             // Clean up and re-register the callback to catch the next message.
             udpClient.Close();
-            receiver.registerUDPListener();
+            receiver.registerUDPListener(receiver.port);
         }
     }
 
@@ -131,5 +131,6 @@ namespace osk
         public IPEndPoint listenSocket;
         public UdpClient udpListener;
         public Receiver oskReceiver;
+        public int port;
     }
 }

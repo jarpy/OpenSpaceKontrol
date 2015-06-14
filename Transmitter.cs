@@ -10,13 +10,14 @@ namespace osk
     class Transmitter
     {
         private UdpClient udp = new UdpClient();
-        private IPEndPoint recipient = new IPEndPoint(IPAddress.Parse("10.31.225.105"), 9000);
+        private IPEndPoint recipient;
 
         private const string OSCFloat = "f";
         private const string OSCString = "s";
 
-        public Transmitter()
+        public Transmitter(string remoteAddress, int port)
         {
+            recipient = new IPEndPoint(IPAddress.Parse(remoteAddress), port);
             udp.Connect(recipient);
         }
 
